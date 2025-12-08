@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Drone.io</title>
+<style>
+    body {
+        margin: 0;
+        background: #0b0f19;
+        font-family: Arial, sans-serif;
+        overflow: hidden;
+    }
+
+    /* HOMEPAGE MENU */
+    #menu {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        color: white;
+        transition: 0.6s;
+        z-index: 10;
+    }
+
+    h1 {
+        font-size: 60px;
+        margin-bottom: 20px;
+        letter-spacing: 3px;
+        text-shadow: 0 0 10px #00aaff;
+    }
+
+    h2 { 
+        font-family: Arial, sans-serif;
+        width: 200px;
+        text-align: center;
+        height: 50px;
+        color: white;
+        text-shadow: rgb(0, 221, 255) 0px 0px 10px;
+        content: "Made by Ty, Lucas, and Ben";
+        position: absolute;
+        left: 44.5%;
+        top: 60%;
+    }
+
+    .play-btn {
+        background: #00aaff;
+        padding: 18px 50px;
+        font-size: 32px;
+        border-radius: 12px;
+        cursor: pointer;
+        border: none;
+        color: white;
+        box-shadow: 0 0 20px #00aaff;
+        transition: 0.2s;
+    }
+
+    .play-btn:hover {
+        transform: scale(1.05);
+        background: #33bbff;
+    }
+
+    /* VOID BACKGROUND */
+    #voidScreen {
+        width: 100%;
+        height: 100%;
+        background: black;
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: none; /* hidden until play is clicked */
+        overflow: hidden;
+        z-index: 1;
+    }
+
+    /* Floating particles */
+    .particle {
+        position: absolute;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #11aaff;
+        opacity: 0.7;
+        animation: drift 6s linear infinite;
+        filter: blur(1px);
+    }
+
+    /* Particle animation */
+    @keyframes drift {
+        0% { transform: translateY(0) scale(1); opacity: 0.7; }
+        100% { transform: translateY(-1200px) scale(0.2); opacity: 0; }
+    }
+</style>
+</head>
+<body>
+
+<!-- MAIN MENU -->
+<div id="menu">
+    <h1>Drone.io</h1>
+    <h2>Made by Ty, Lucas and ben</h2>
+    <button class="play-btn" id="play-btn">PLAY</button>
+
+</div>
+
+<script>
+   document.getElementById("play-btn").onclick = () => {
+    location.href = "Game.html";
+};
+</script>
