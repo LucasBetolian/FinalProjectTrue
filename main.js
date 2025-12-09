@@ -159,30 +159,38 @@ function shootBullet() {
     const rect = Player.getBoundingClientRect();
     const playerX = rect.left + rect.width / 2;
     const playerY = rect.top + rect.height / 2;
-
-    const angle = Math.atan2(mouseY - playerY, mouseX - playerX);
+    const angleToMouse = Math.atan2(mouseY - playerY, mouseX - playerX);
 
     const bullet = document.createElement("div");
-    bullet.className = "bullet";
     bullet.style.position = "absolute";
     bullet.style.width = "10px";
     bullet.style.height = "10px";
-    bullet.style.background = "blue";
+    bullet.style.background = "yellow";
     bullet.style.borderRadius = "50%";
-    bullet.boxShadow = "0 0 20px blue";
+    bullet.boxShadow = "0 0 10px rgba(255, 255, 0, 0.5)";
+    bullet.style.zIndex = "15";
 
-    bullet.style.left = playerX + "px";
-    bullet.style.top = playerY + "px";
+    bullets.push({ 
+
+    el: bullet,
+    x: playerX, 
+
+    y: playerY, 
+
+    size: 5, 
+
+    color: "yellow", 
+
+    speed: 8, 
+
+    vx: Math.cos(angleToMouse), 
+
+    vy: Math.sin(angleToMouse) 
+
+    }); 
+
 
     document.body.appendChild(bullet);
-
-    bullets.push({
-        el: bullet,
-        x: playerX,
-        y: playerY,
-        vx: Math.cos(angle) * bulletSpeed,
-        vy: Math.sin(angle) * bulletSpeed
-    });
 }
 
 function clamp(value, min, max) {
@@ -217,8 +225,8 @@ function updateBullets() {
     for (let i = bullets.length - 1; i >= 0; i--) {
         const b = bullets[i];
 
-        b.x += b.vx;
-        b.y += b.vy;
+        b.x += b.vx * b.speed;
+        b.y += b.vy * b.speed;
 
         b.el.style.left = b.x + "px";
         b.el.style.top = b.y + "px";
@@ -294,7 +302,7 @@ function updateBullets() {
 }
 
 function movement() {
-    const speed = 5;
+    const speed = playerSpeed;
 
 
     if (keys["w"]) MapY += speed;
@@ -354,7 +362,118 @@ let innerBar = DisplayHealthBar(Player, playerHealth, playerMaxHealth).innerBar;
 
 HealthBar.appendChild(innerBar);
 Player.appendChild(HealthBar);
+// ------------------ Upgrade System ------------------
 
+// Upgrade stats
+let upgradeStats = {
+    speed: 1,
+    bulletSpeed: 1,
+    fireRate: 1,
+    maxHealth: 1,
+    damage: 1
+};
+
+// Costs
+let upgradeCosts = {
+    speed: 50,
+    bulletSpeed: 50,
+    fireRate: 75,
+    maxHealth: 100,
+    damage: 100
+};
+
+// Actual applied gameplay values
+let playerSpeed = 5;
+let bulletSpeedGlobal = 8;
+let fireCooldown = 100; // ms, lower = faster shooting
+
+function applyUpgrades() {
+    playerSpeed = 5 + upgradeStats.speed * 0.75;
+    bulletSpeedGlobal = 8 + upgradeStats.bulletSpeed * 1.5;
+    damage = 50 + upgradeStats.damage * 10;
+
+    // Fire rate improves by decreasing cooldown
+    fireCooldown = Math.max(80 - upgradeStats.fireRate * 5, 20);
+
+    playerMaxHealth = 100 + upgradeStats.maxHealth * 25;
+    if (playerHealth > playerMaxHealth) playerHealth = playerMaxHealth;
+}
+
+let lastShotTime = 0;
+
+// 🔥 Modified shooting system (uses upgraded bullet speed + fire rate)
+document.addEventListener("click", () => {
+    const now = performance.now();
+    if (now - lastShotTime < fireCooldown) return;
+    lastShotTime = now;
+
+    const rect = Player.getBoundingClientRect();
+    const playerX = rect.left + rect.width / 2;
+    const playerY = rect.top + rect.height / 2;
+    const angleToMouse = Math.atan2(mouseY - playerY, mouseX - playerX);
+
+    const bullet = document.createElement("div");
+    bullet.style.position = "absolute";
+    bullet.style.width = "10px";
+    bullet.style.height = "10px";
+    bullet.style.background = "yellow";
+    bullet.style.borderRadius = "50%";
+    bullet.style.zIndex = "15";
+
+    bullets.push({
+        el: bullet,
+        x: playerX,
+        y: playerY,
+        speed: bulletSpeedGlobal,
+        vx: Math.cos(angleToMouse),
+        vy: Math.sin(angleToMouse)
+    });
+
+    document.body.appendChild(bullet);
+});
+
+// 🔥 BUILD UPGRADE UI
+function buildUpgradeList() {
+    UpgradesList.innerHTML = "";
+
+    const entries = [
+        ["Speed", "speed"],
+        ["Bullet Speed", "bulletSpeed"],
+        ["Fire Rate", "fireRate"],
+        ["Max Health", "maxHealth"],
+        ["Damage", "damage"]
+    ];
+
+    entries.forEach(([label, key]) => {
+        const li = document.createElement("li");
+        li.style.marginBottom = "12px";
+        li.style.cursor = "pointer";
+        li.style.background = "rgba(166, 26, 194, 0.59)";
+        li.style.padding = "8px";
+        li.style.borderRadius = "5px";
+
+        li.textContent = `${label} (Lv. ${upgradeStats[key]}) — Cost: ${upgradeCosts[key]}`;
+
+        li.addEventListener("click", () => {
+            if (score >= upgradeCosts[key]) {
+                score -= upgradeCosts[key];
+                upgradeStats[key]++;
+
+                upgradeCosts[key] = Math.round(upgradeCosts[key] * 1.5);
+
+                applyUpgrades();
+                ScoreDisplay.textContent = "Score: " + score;
+                buildUpgradeList();
+            }
+        });
+
+        UpgradesList.appendChild(li);
+    });
+}
+
+// initialize upgrades
+applyUpgrades();
+buildUpgradeList();
 //update loop
 setInterval(() => {
     LoadTargets();
