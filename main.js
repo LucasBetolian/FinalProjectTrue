@@ -483,9 +483,49 @@ function checkBulletEnemyCollisions() {
 }
 
 // === Start spawning enemies ===
-setInterval(spawnEnemy, enemySpawnRate);
+setInterval(spawnEnemy, enemySpawnRate * 1000);
 moveEnemies();
 checkBulletEnemyCollisions();
+
+// ==================== ORANGE SYSTEM ====================
+const Maxorages = 400;
+const Orange_table = [];
+let orages = 0;
+
+function Loadorages() {
+    if (Maxorages > orages) {
+
+        orages+=1;
+
+        const Orange = document.createElement("div");
+        Orange.style.position = "absolute";
+        Orange.style.width = "35px";
+        Orange.style.height = "35px";
+        Orange.health = 75;
+        Orange.style.opacity = "100%";
+
+        const OrangeDisplayImg = document.createElement("img");
+        OrangeDisplayImg.src = "assets/Orange.png";
+        OrangeDisplayImg.alt = "Orange sprite";
+        OrangeDisplayImg.style.width = "100%";
+        OrangeDisplayImg.style.height = "100%";
+        OrangeDisplayImg.style.imageRendering = "pixelated";
+        OrangeDisplayImg.style.userSelect = "none";
+
+        Orange.style.top = Math.random() * (mapHeight - 50) + "px";
+        Orange.style.left = Math.random() * (mapWidth - 50) + "px";
+        
+        Orange_table.push({
+            el: Orange,
+            health: 75,
+            x: parseFloat(Orange.style.left),
+            y: parseFloat(Orange.style.top)
+        });
+
+        Orange.appendChild(OrangeDisplayImg);
+        MapDiv.appendChild(Orange);
+    }
+}
 // Player Health Bar (not functional yet)
 let playerHealth = 100;
 let playerMaxHealth = 100;
@@ -609,6 +649,7 @@ buildUpgradeList();
 //update loop
 setInterval(() => {
     LoadTargets();
+    Loadorages();   
     innerBar.style.width = clamp((playerHealth / playerMaxHealth) * 100, 0, 100) + "%";
 }, 100);
 // Initial
