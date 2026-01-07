@@ -1,44 +1,122 @@
-// ====== Enemy ====== 
+// ==================== ENEMY SYSTEM ====================
 
-const enemies = []; 
+// Enemy list
+const enemies = [];
+const enemySpawnRate = 2000; // ms
+const enemySpeed = 1.2;
+const enemyMaxHealth = 100;
 
-function spawnEnemy() { 
+// === Spawn Enemies ===
+function spawnEnemy() {
+  const enemy = document.createElement("div");
+  enemy.style.position = "absolute";
+  enemy.style.width = "50px";
+  enemy.style.height = "50px";
+  enemy.style.background = "red";
+  enemy.style.border = "2px solid white";
+  enemy.style.borderRadius = "5px";
+  enemy.style.zIndex = "5";
 
-  enemies.push({ 
+  // Random spawn location
+  enemy.style.left = Math.random() * (mapWidth - 50) + "px";
+  enemy.style.top = Math.random() * (mapHeight - 50) + "px";
 
-    x: Math.random() * canvas.width, 
+  // Create health bar
+  const barContainer = document.createElement("div");
+  barContainer.style.position = "absolute";
+  barContainer.style.top = "-10px";
+  barContainer.style.left = "0";
+  barContainer.style.width = "100%";
+  barContainer.style.height = "6px";
+  barContainer.style.background = "rgba(255,0,0,0.4)";
+  barContainer.style.border = "1px solid white";
 
-    y: Math.random() * canvas.height, 
+  const bar = document.createElement("div");
+  bar.style.height = "100%";
+  bar.style.width = "100%";
+  bar.style.background = "lime";
 
-    size: 20, 
+  barContainer.appendChild(bar);
+  enemy.appendChild(barContainer);
 
-    color: "red", 
+  MapDiv.appendChild(enemy);
 
-    speed: 1 + Math.random() * 2 
+  enemies.push({
+    el: enemy,
+    health: enemyMaxHealth,
+    bar: bar
+  });
+}
 
-  }); 
+// === Enemy follows player ===
+function moveEnemies() {
+  const playerRect = Player.getBoundingClientRect();
+  const playerX = playerRect.left + playerRect.width / 2;
+  const playerY = playerRect.top + playerRect.height / 2;
 
-} 
+  for (let i = enemies.length - 1; i >= 0; i--) {
+    const e = enemies[i];
+    const rect = e.el.getBoundingClientRect();
+    const ex = rect.left + rect.width / 2;
+    const ey = rect.top + rect.height / 2;
 
-setInterval(spawnEnemy, 2000); // spawn every 2 seconds
+    const dx = playerX - ex;
+    const dy = playerY - ey;
+    const distance = Math.sqrt(dx * dx + dy * dy);
 
-// Move enemies toward player 
+    if (distance > 1) {
+      e.el.style.left = parseFloat(e.el.style.left) + (dx / distance) * enemySpeed + "px";
+      e.el.style.top = parseFloat(e.el.style.top) + (dy / distance) * enemySpeed + "px";
+    }
+  }
 
-enemies.forEach(enemy, ei) => {
+  requestAnimationFrame(moveEnemies);
+}
 
-const angle = Math.atan2(player.y - enemy.y, player.x - enemy.x); 
+// === Collision between bullets and enemies ===
+function checkBulletEnemyCollisions() {
+  for (let i = bullets.length - 1; i >= 0; i--) {
+    const b = bullets[i];
+    const bRect = b.el.getBoundingClientRect();
 
-enemy.x += Math.cos(angle) * enemy.speed; 
+    for (let j = enemies.length - 1; j >= 0; j--) {
+      const e = enemies[j];
+      const eRect = e.el.getBoundingClientRect();
 
-enemy.y += Math.sin(angle) * enemy.speed; 
+      if (
+        bRect.left < eRect.right &&
+        bRect.right > eRect.left &&
+        bRect.top < eRect.bottom &&
+        bRect.bottom > eRect.top
+      ) {
+        // Hit detected 💥
+        e.health -= damage;
+        e.bar.style.width = Math.max((e.health / enemyMaxHealth) * 100, 0) + "%";
 
-  
+        // Remove bullet
+        b.el.remove();
+        bullets.splice(i, 1);
 
-// Collision with player 
-const dist = Math.hypot(player.x - enemy.x, player.y - enemy.y); 
+        if (e.health <= 0) {
+          // Remove enemy
+          e.el.remove();
+          enemies.splice(j, 1);
 
-if (dist < player.size + enemy.size) { 
+          // Add score
+          score += 5;
+          ScoreDisplay.textContent = "Score: " + score;
+        }
 
-// player health  later
+        break;
+      }
+    }
+  }
 
-};
+  requestAnimationFrame(checkBulletEnemyCollisions);
+}
+
+// === Start spawning enemies ===
+setInterval(spawnEnemy, enemySpawnRate);
+moveEnemies();
+checkBulletEnemyCollisions();
+
